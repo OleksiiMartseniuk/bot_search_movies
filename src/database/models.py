@@ -24,9 +24,10 @@ class Movie(Base):
     rank = Column(Integer)
     title = Column(String(50))
     full_title = Column(String(100))
+    year = Column(String(10))
     image = Column(String(1000))
     crew = Column(String(100))
-    imDbRating = Column(Float)
+    imDbRating = Column(String)
     imDbRatingCount = Column(Integer)
 
     def __repr__(self):
