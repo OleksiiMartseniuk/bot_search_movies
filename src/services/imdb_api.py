@@ -1,5 +1,6 @@
 import requests
 
+from typing import Optional
 from datetime import datetime
 from urllib.parse import urljoin
 
@@ -7,6 +8,22 @@ from src.database.db import session
 from src.database.models import Movie, Groups
 
 from src.config.settings import API_KEY
+
+
+class InvalidDataRequestError(Exception):
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
+class InvalidUrlError(Exception):
+    pass
+
+
+class InvalidDataResponse(ValueError):
+    pass
 
 
 class ClientIMDB:
@@ -24,11 +41,14 @@ class ClientIMDB:
     def __del__(self):
         self.session.close()
 
-    def _get(self, url_part: str) -> dict:
+    def _get(self, url_part: str) -> Optional[dict]:
         url = urljoin(self.domain, url_part)
         response = requests.get(url)
         if response.status_code == 200:
+            if response.json()['errorMessage']:
+                raise InvalidDataRequestError(response.json()['errorMessage'])
             return response.json()
+        raise InvalidUrlError
 
     def data_collection(self) -> None:
         for group_title in self.groups:
@@ -55,5 +75,5 @@ class ClientIMDB:
                     group.movies.append(movie)
                     self.session.add(group)
                     self.session.commit()
-            except:
-                raise Exception
+            except InvalidDataResponse as ex:
+                raise ex
