@@ -80,7 +80,7 @@ class ClientIMDB:
                 raise ex
 
     def clear_data(self) -> None:
-        # очистка таблиць
+        """очистка таблиць"""
         self.session.query(Group).delete()
         self.session.query(Movie).delete()
         self.session.commit()
