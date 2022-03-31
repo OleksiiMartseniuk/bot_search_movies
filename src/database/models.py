@@ -1,5 +1,4 @@
 from sqlalchemy import Column
-from sqlalchemy import Table
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String

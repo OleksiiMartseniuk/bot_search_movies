@@ -50,7 +50,8 @@ class ClientIMDB:
             return response.json()
         raise InvalidUrlError
 
-    def data_collection(self) -> None:
+    def collection_data(self) -> None:
+        self.clear_data()
         for group_title in self.groups:
             url_part = f'/en/API/{group_title}/{self.api_key}'
             data = self._get(url_part=url_part)
@@ -77,3 +78,9 @@ class ClientIMDB:
                     self.session.commit()
             except InvalidDataResponse as ex:
                 raise ex
+
+    def clear_data(self) -> None:
+        # очистка таблиць
+        self.session.query(Group).delete()
+        self.session.query(Movie).delete()
+        self.session.commit()
