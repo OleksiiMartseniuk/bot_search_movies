@@ -5,7 +5,7 @@ from datetime import datetime
 from urllib.parse import urljoin
 
 from src.database.db import session
-from src.database.models import Movie, Groups
+from src.database.models import Movie, Group
 
 from src.config.settings import API_KEY
 
@@ -56,7 +56,9 @@ class ClientIMDB:
             data = self._get(url_part=url_part)
             try:
                 # создания групы
-                group = Groups(title=group_title, created=datetime.now())
+                group = Group(title=group_title, created=datetime.now())
+                self.session.add(group)
+                self.session.commit()
                 for item in data['items']:
                     # создания фильма
                     movie = Movie(
@@ -68,12 +70,10 @@ class ClientIMDB:
                         image=item['image'],
                         crew=item['crew'],
                         imDbRating=item['imDbRating'],
-                        imDbRatingCount=int(item['imDbRatingCount'])
+                        imDbRatingCount=int(item['imDbRatingCount']),
+                        group=group.id
                     )
                     self.session.add(movie)
-                    # добавления фильма в групу
-                    group.movies.append(movie)
-                    self.session.add(group)
                     self.session.commit()
             except InvalidDataResponse as ex:
                 raise ex
