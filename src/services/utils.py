@@ -11,6 +11,13 @@ class MovieServices:
         self.group_title = group_title
         self.session = session
 
+    @staticmethod
+    def movie_id(id: int) -> Movie:
+        """ Вывод фильма по id"""
+        with session as s:
+            result = s.query(Movie).filter(Movie.id == id).first()
+        return result
+
     def movie_all(self) -> list:
         """ Вывод всех фильмов """
         with self.session as s:
