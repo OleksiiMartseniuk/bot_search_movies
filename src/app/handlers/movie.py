@@ -2,6 +2,7 @@ import time
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils.markdown import hbold
 
@@ -20,7 +21,7 @@ with session as s:
 available_menu_names = ['Вывод всех фильмов', 'Топ 10 фильмов', 'Рандомный фильм']
 
 
-async def card(item: Movie) -> tuple:
+def card(item: Movie) -> tuple:
     cart = f'{hbold("Title: ")}{item.title}\n' \
            f'{hbold("Full Title: ")}{item.full_title}\n' \
            f'{hbold("Year: ")}{item.year}\n' \
@@ -30,6 +31,13 @@ async def card(item: Movie) -> tuple:
            f'{hbold("Rank: ")}{item.rank}'
     image = item.image
     return (image, cart)
+
+
+def list_card(item: Movie) -> tuple:
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(types.InlineKeyboardButton(text="Подробние..", callback_data=f"movie_{item.id}"))
+    content = f'{item.rank}: {item.title}'
+    return (content, keyboard)
 
 
 class OrderMovie(StatesGroup):
@@ -68,31 +76,38 @@ async def movie_menu(message: types.Message, state: FSMContext):
     client_movie = MovieServices(user_data.get('movie_category'))
     if message.text == 'Вывод всех фильмов':
         data = client_movie.movie_all()
-        await message.answer('Збор Данных...')
+        await message.answer('Збор Данных...', reply_markup=types.ReplyKeyboardRemove())
         for index, item in enumerate(data):
-            image, content = await card(item)
-            await message.answer_photo(image, caption=content, reply_markup=types.ReplyKeyboardRemove())
+            content, keyboard = list_card(item)
+            await message.answer(content, reply_markup=keyboard)
             if index % 20 == 0:
                 time.sleep(3)
+        await message.answer('Збор завершон')
 
     if message.text == 'Топ 10 фильмов':
         data = client_movie.movie_top(10)
-        await message.answer('Збор Данных...')
+        await message.answer('Збор Данных...', reply_markup=types.ReplyKeyboardRemove())
         for index, item in enumerate(data):
-            image, content = await card(item)
-            await message.answer_photo(image, caption=content, reply_markup=types.ReplyKeyboardRemove())
-            if index % 5 == 0:
-                time.sleep(2)
+            content, keyboard = list_card(item)
+            await message.answer(content, reply_markup=keyboard)
 
     if message.text == 'Рандомный фильм':
         item = client_movie.movie_rang()
-        image, content = await card(item)
+        image, content = card(item)
         await message.answer_photo(image, caption=content, reply_markup=types.ReplyKeyboardRemove())
 
     await state.finish()
+
+
+async def movie_id_card(call: types.CallbackQuery):
+    movie_id = call.data.split("_")[1]
+    movie = MovieServices.movie_id(movie_id)
+    image, content = card(movie)
+    await call.message.answer_photo(image, caption=content, reply_markup=types.ReplyKeyboardRemove())
 
 
 def register_handlers_movie(dp: Dispatcher):
     dp.register_message_handler(movie_start, commands="movie", state="*")
     dp.register_message_handler(movie_category, state=OrderMovie.waiting_for_category_names)
     dp.register_message_handler(movie_menu, state=OrderMovie.waiting_for_menu_names)
+    dp.register_callback_query_handler(movie_id_card, Text(startswith="movie_"))
