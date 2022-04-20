@@ -8,10 +8,13 @@ from src.config.settings import BASE_DIR
 
 if __name__ == '__main__':
     if not os.path.exists(f'{BASE_DIR}/db.sqlite3'):
-        create()
-        client = ClientIMDB()
-        client.collection_data()
-        print('Create DB')
+        if os.getenv('API_KEY'):
+            create()
+            client = ClientIMDB()
+            client.collection_data()
+            print('Create DB')
+        else:
+            print('Not set ("API_KEY") IMDB')
     else:
         print('DB Exists')
 
