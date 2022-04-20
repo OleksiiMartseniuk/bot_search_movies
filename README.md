@@ -30,7 +30,7 @@ Make sure to have python version 3 install on you pc or laptop.
 `https://github.com/OleksiiMartseniuk/bot_search_movies.git`
 
 2. ### Create Database
-Run the file `src/database/create_db.py`
+Run the file `python create_db.py`
 
 3. ### Run docker 
 
